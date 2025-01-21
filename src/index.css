@@ -1,0 +1,151 @@
+/* General styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  background-color: #f9f9f9;
+}
+
+.container {
+  width: 90%;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header styles */
+.header {
+  background-color: #3f51b5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+}
+
+.header h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.header img {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+/* Transactions Table */
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.table-container h2 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+}
+
+th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #e0e0e0;
+}
+
+td {
+  border-bottom: 1px solid #ddd;
+}
+
+.action-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-icons button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3f51b5;
+}
+
+.action-icons button:hover {
+  color: #1e3a8a;
+}
+
+/* Buttons */
+button {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1e3a8a;
+}
+
+.upload-btn {
+  margin-right: 10px;
+}
+
+.add-transaction-btn {
+  background-color: #673ab7;
+}
+
+.add-transaction-btn:hover {
+  background-color: #512da8;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.pagination select {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.pagination span {
+  margin: 0 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-container {
+    padding: 10px;
+  }
+
+  th, td {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 8px 12px;
+  }
+}
