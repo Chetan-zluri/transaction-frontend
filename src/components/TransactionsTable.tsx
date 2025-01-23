@@ -62,7 +62,7 @@ const TransactionsTable: React.FC = () => {
 
     const fetchConversionRates = async () => {
       try {
-        const response = await fetch(`http://35.154.170.151:8080/2019-01-01`);
+        const response = await fetch(`https://freeexchange.onrender.com/2019-01-01`);
         console.log("response",response);
         const data = await response.json();
         setConversionRates(data || {});
