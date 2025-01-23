@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog,CircularProgress, DialogActions, DialogContent, DialogTitle, Button, TextField, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Checkbox } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faDownload, faPrint, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar } from '@fortawesome/free-solid-svg-icons';
 import { getAllTransactions, updateTransaction, deleteTransaction,deleteTransactions } from '../services/transactionService';
-// import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import {jsPDF} from 'jspdf';
 import 'jspdf-autotable';
-// import { Chart, registerables } from 'chart.js';
-// Chart.register(...registerables);
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
+
 interface Transaction {
   id: number;
   date: string;
@@ -41,8 +42,8 @@ const TransactionsTable: React.FC = () => {
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [selectedTransactions, setSelectedTransactions] = useState<number[]>([]);
   const today = new Date().toISOString().split('T')[0];
-  // const [chartDialogOpen, setChartDialogOpen] = useState(false);
-  // const [ChartDate,setChartDate] = useState('');
+  const [chartDialogOpen, setChartDialogOpen] = useState(false);
+  const [chartDate,setChartDate] = useState('');
   useEffect(() => {
     const fetchTransactions = async () => {
       setLoading(true);
@@ -112,56 +113,56 @@ const TransactionsTable: React.FC = () => {
     }
   };
 
-  // const generateChartData = () => {
-  //   const aggregatedData: { [date: string]: number } = {};
-  //   const currencyCount: { [currency: string]: number } = {};
+  const generateChartData = () => {
+    const aggregatedData: { [date: string]: number } = {};
+    const currencyCount: { [currency: string]: number } = {};
   
-  //   filteredTransactions.forEach(transaction => {
-  //     // Convert amount to INR
-  //     const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
+    filteredTransactions.forEach(transaction => {
+      // Convert amount to INR
+      const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
   
-  //     // Aggregate amounts by date for the bar chart
-  //     if (aggregatedData[transaction.date]) {
-  //       aggregatedData[transaction.date] += amountInINR;
-  //     } else {
-  //       aggregatedData[transaction.date] = amountInINR;
-  //     }
+      // Aggregate amounts by date for the bar chart
+      if (aggregatedData[transaction.date]) {
+        aggregatedData[transaction.date] += amountInINR;
+      } else {
+        aggregatedData[transaction.date] = amountInINR;
+      }
   
-  //     // Count occurrences of each currency for the pie chart
-  //     if (currencyCount[transaction.Currency]) {
-  //       currencyCount[transaction.Currency]++;
-  //     } else {
-  //       currencyCount[transaction.Currency] = 1;
-  //     }
-  //   });
+      // Count occurrences of each currency for the pie chart
+      if (currencyCount[transaction.Currency]) {
+        currencyCount[transaction.Currency]++;
+      } else {
+        currencyCount[transaction.Currency] = 1;
+      }
+    });
   
-  //   const barData = {
-  //     labels: Object.keys(aggregatedData),
-  //     datasets: [
-  //       {
-  //         label: 'Amount (INR)',
-  //         data: Object.values(aggregatedData),
-  //         backgroundColor: 'rgba(75, 192, 192, 0.6)',
-  //         borderColor: 'rgba(75, 192, 192, 1)',
-  //         borderWidth: 1,
-  //       },
-  //     ],
-  //   };
+    const barData = {
+      labels: Object.keys(aggregatedData),
+      datasets: [
+        {
+          label: 'Amount (INR)',
+          data: Object.values(aggregatedData),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+        },
+      ],
+    };
   
-  //   const pieData = {
-  //     labels: Object.keys(currencyCount),
-  //     datasets: [
-  //       {
-  //         data: Object.values(currencyCount),
-  //         backgroundColor: Object.keys(currencyCount).map(
-  //           () => `hsl(${Math.random() * 360}, 100%, 75%)`
-  //         ),
-  //       },
-  //     ],
-  //   };
+    const pieData = {
+      labels: Object.keys(currencyCount),
+      datasets: [
+        {
+          data: Object.values(currencyCount),
+          backgroundColor: Object.keys(currencyCount).map(
+            () => `hsl(${Math.random() * 360}, 100%, 75%)`
+          ),
+        },
+      ],
+    };
   
-  //   return { barData, pieData };
-  // };
+    return { barData, pieData };
+  };
   
   const handleDeleteMultiple = async () => {
     setDeleteLoading(true);
@@ -205,10 +206,10 @@ const TransactionsTable: React.FC = () => {
     });
   };
 
-  // const handleOpenChartDialog = (date: string) => {
-  //   setChartDate(date);
-  //   setChartDialogOpen(true);
-  // };
+  const handleOpenChartDialog = (date: string) => {
+    setChartDate(date);
+    setChartDialogOpen(true);
+  };
 
   const handleEditSubmit = async (id: number) => {
     setError('');
@@ -548,11 +549,11 @@ const TransactionsTable: React.FC = () => {
                     <FontAwesomeIcon icon={faTrash} />
                   </IconButton>
                 </Tooltip>
-                {/* <Tooltip title="View Charts" arrow>
+                <Tooltip title="View Charts" arrow>
             <IconButton onClick={() => handleOpenChartDialog(transaction.date)} style={{ color: 'blue' }}>
               <FontAwesomeIcon icon={faChartBar} />
             </IconButton>
-          </Tooltip> */}
+          </Tooltip>
               </td>
             </tr>
           ))}
@@ -736,19 +737,18 @@ const TransactionsTable: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* <Dialog open={chartDialogOpen} onClose={() => setChartDialogOpen(false)} maxWidth="lg" fullWidth>
-  <DialogTitle>Transactions Chart</DialogTitle>
-  <DialogContent>
-    <Bar data={generateChartData().barData} />
-    <Pie data={generateChartData().pieData} />
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setChartDialogOpen(false)} color="primary">
-      Close
-    </Button>
-  </DialogActions>
-</Dialog> */}
-
+      <Dialog open={chartDialogOpen} onClose={() => setChartDialogOpen(false)} maxWidth="lg" fullWidth>
+    <DialogTitle>Transactions Chart on {chartDate}</DialogTitle>
+    <DialogContent>
+        <Bar data={generateChartData().barData} />
+        <Pie data={generateChartData().pieData} />
+    </DialogContent>
+    <DialogActions>
+        <Button onClick={() => setChartDialogOpen(false)} color="primary">
+            Close
+        </Button>
+    </DialogActions>
+</Dialog>
     </div>    
   );
 }

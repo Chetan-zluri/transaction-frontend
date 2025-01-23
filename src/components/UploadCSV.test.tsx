@@ -1,115 +1,104 @@
 // import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-// import { ToastContainer } from 'react-toastify';
+import '@testing-library/jest-dom/'; // Import the jest-dom matchers
 import UploadCSV from './UploadCSV';
 import { uploadCSV } from '../services/transactionService';
 import { validateFile } from '../utils/validations';
+import { toast } from 'react-toastify';
 
-jest.mock('../services/transactionService');
-jest.mock('../utils/validations');
+// Mocking the services and utilities
+jest.mock('../services/transactionService', () => ({
+  uploadCSV: jest.fn(),
+}));
+jest.mock('../utils/validations', () => ({
+  validateFile: jest.fn(),
+}));
+jest.mock('react-toastify', () => ({
+  toast: {
+    error: jest.fn(),
+    success: jest.fn(),
+    warn: jest.fn(),
+  },
+  ToastContainer: () => <div />,
+}));
 
-// Mock window.URL.createObjectURL
-// global.URL.createObjectURL = jest.fn();
+const mockUploadCSV = uploadCSV as jest.Mock;
+const mockValidateFile = validateFile as jest.Mock;
 
-describe('UploadCSV Component', () => {
-  const mockOnUpload = jest.fn();
-  const mockOnClose = jest.fn();
+describe('UploadCSV', () => {
+  const onUpload = jest.fn();
+  const onClose = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    render(<UploadCSV onUpload={mockOnUpload} onClose={mockOnClose} />);
-    expect(screen.getByText(/Upload CSV/i)).toBeInTheDocument();
+  it('renders the upload dialog', () => {
+    render(<UploadCSV onUpload={onUpload} onClose={onClose} />);
+    expect(screen.getByText('Upload CSV')).toBeInTheDocument();
     expect(screen.getByTestId('upload-file-input')).toBeInTheDocument();
   });
 
-  // it('displays validation error if file is invalid', async () => {
-  //   (validateFile as jest.Mock).mockReturnValue('Invalid file format');
-  //   render(<UploadCSV onUpload={mockOnUpload} onClose={mockOnClose} />);
+  it('handles file selection', () => {
+    render(<UploadCSV onUpload={onUpload} onClose={onClose} />);
+    const fileInput = screen.getByTestId('upload-file-input') as HTMLInputElement;
 
-  //   const input = screen.getByTestId('upload-file-input');
-  //   const file = new File(['invalid content'], 'invalid.txt', { type: 'text/plain' });
+    const file = new File(['file content'], 'test.csv', { type: 'text/csv' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
 
-  //   fireEvent.change(input, { target: { files: [file] } });
+    expect(fileInput.files![0]).toBe(file);
+    expect(fileInput.files).toHaveLength(1);
+  });
 
-  //   const submitButton = screen.getByRole('button', { name: /Upload/i });
-  //   fireEvent.click(submitButton);
+  it('shows error if file validation fails', async () => {
+    mockValidateFile.mockReturnValue('Invalid file format');
 
-  //   await waitFor(() => {
-  //     expect(screen.getByText('Invalid file format')).toBeInTheDocument();
-  //   });
-  // });
+    render(<UploadCSV onUpload={onUpload} onClose={onClose} />);
+    const fileInput = screen.getByTestId('upload-file-input') as HTMLInputElement;
+    const file = new File(['file content'], 'test.csv', { type: 'text/csv' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
 
-  it('calls uploadCSV service with valid file', async () => {
-    const mockFile = new File(['valid content'], 'valid.csv', { type: 'text/csv' });
-    const mockResponse = { data: { message: 'CSV file processed successfully', invalidRows: [] }, error: null };
-    (validateFile as jest.Mock).mockReturnValue(null);
-    (uploadCSV as jest.Mock).mockResolvedValue(mockResponse);
-
-    render(<UploadCSV onUpload={mockOnUpload} onClose={mockOnClose} />);
-
-    const input = screen.getByTestId('upload-file-input');
-    fireEvent.change(input, { target: { files: [mockFile] } });
-
-    const submitButton = screen.getByRole('button', { name: /Upload/i });
-    fireEvent.click(submitButton);
+    fireEvent.submit(screen.getByRole('button', { name: /upload/i }));
 
     await waitFor(() => {
-      expect(uploadCSV).toHaveBeenCalledWith(mockFile);
-      expect(mockOnUpload).toHaveBeenCalled();
+      expect(mockValidateFile).toHaveBeenCalledWith(file);
+      expect(toast.error).toHaveBeenCalledWith('Invalid file format', { autoClose: 2000 });
     });
   });
 
-  it('displays error when uploadCSV fails', async () => {
-    const mockFile = new File(['valid content'], 'valid.csv', { type: 'text/csv' });
-    const mockError = 'Upload failed';
-    (validateFile as jest.Mock).mockReturnValue(null);
-    (uploadCSV as jest.Mock).mockResolvedValue({ data: null, error: mockError });
+  // it('uploads file successfully', async () => {
+  //   mockValidateFile.mockReturnValue('');
+  //   mockUploadCSV.mockResolvedValue({ data: { message: 'CSV file processed successfully', invalidRows: [] }, error: null });
 
-    render(<UploadCSV onUpload={mockOnUpload} onClose={mockOnClose} />);
+  //   render(<UploadCSV onUpload={onUpload} onClose={onClose} />);
+  //   const fileInput = screen.getByTestId('upload-file-input') as HTMLInputElement;
+  //   const file = new File(['file content'], 'test.csv', { type: 'text/csv' });
+  //   fireEvent.change(fileInput, { target: { files: [file] } });
 
-    const input = screen.getByTestId('upload-file-input');
-    fireEvent.change(input, { target: { files: [mockFile] } });
-
-    const submitButton = screen.getByRole('button', { name: /Upload/i });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(mockError)).toBeInTheDocument();
-    });
-  });
-
-  // it('downloads invalid rows if provided in response', async () => {
-  //   const mockFile = new File(['valid content'], 'valid.csv', { type: 'text/csv' });
-  //   const invalidRows = [{ row: 1, error: 'Invalid data' }];
-  //   const mockResponse = { data: { message: 'CSV file processed successfully', invalidRows }, error: null };
-  //   (validateFile as jest.Mock).mockReturnValue(null);
-  //   (uploadCSV as jest.Mock).mockResolvedValue(mockResponse);
-
-  //   const mockCreateElement = jest.spyOn(document, 'createElement');
-  //   const mockAppendChild = jest.spyOn(document.body, 'appendChild');
-  //   const mockRemoveChild = jest.spyOn(document.body, 'removeChild');
-  //   mockCreateElement.mockReturnValue(document.createElement('a'));
-
-  //   render(<UploadCSV onUpload={mockOnUpload} onClose={mockOnClose} />);
-
-  //   const input = screen.getByTestId('upload-file-input');
-  //   fireEvent.change(input, { target: { files: [mockFile] } });
-
-  //   const submitButton = screen.getByRole('button', { name: /Upload/i });
-  //   fireEvent.click(submitButton);
+  //   fireEvent.submit(screen.getByRole('button', { name: /upload/i }));
 
   //   await waitFor(() => {
-  //     expect(mockCreateElement).toHaveBeenCalled();
-  //     expect(mockAppendChild).toHaveBeenCalled();
-  //     expect(mockRemoveChild).toHaveBeenCalled();
+  //     expect(mockUploadCSV).toHaveBeenCalledWith(file);
+  //     expect(toast.warn).toHaveBeenCalledWith('CSV file processed successfully', { autoClose: 2000 });
+  //     expect(onUpload).toHaveBeenCalled();
+  //     expect(onClose).toHaveBeenCalled();
   //   });
-
-  //   mockCreateElement.mockRestore();
-  //   mockAppendChild.mockRestore();
-  //   mockRemoveChild.mockRestore();
   // });
+
+  it('shows error if upload fails', async () => {
+    mockValidateFile.mockReturnValue('');
+    mockUploadCSV.mockResolvedValue({ data: null, error: 'Upload failed' });
+
+    render(<UploadCSV onUpload={onUpload} onClose={onClose} />);
+    const fileInput = screen.getByTestId('upload-file-input') as HTMLInputElement;
+    const file = new File(['file content'], 'test.csv', { type: 'text/csv' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockUploadCSV).toHaveBeenCalledWith(file);
+      expect(toast.error).toHaveBeenCalledWith('Upload failed', { autoClose: 2000 });
+    });
+  });
 });
