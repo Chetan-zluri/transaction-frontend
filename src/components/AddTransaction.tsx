@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, CircularProgress } from '@mui/material';
 import { addTransaction } from '../services/transactionService';
 import axios, { AxiosError } from 'axios';
+
 interface AddTransactionProps {
   onAdd: () => void;
   onClose: () => void;
@@ -15,27 +16,27 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const today = new Date().toISOString().split('T')[0];
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true); // Start loading
-
-    // Validate fields
     if (!date || !description || !amount || !currency) {
       setError('All fields are required');
       setLoading(false);
       return;
     }
-
-    // Validate currency format
+    if (parseFloat(amount) <= 0) {
+      setError('Amount must be greater than zero');
+      setLoading(false);
+      return;
+    }
     if (!isNaN(Number(currency))) {
       setError('Currency must be in the correct format');
       setLoading(false);
       return;
     }
-
     try {
       await addTransaction({
         date,
@@ -59,10 +60,10 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
       } else {
         setError('Unknown error occurred');
       }
+    }finally {
       setLoading(false);
     }
   };
-
 
   return (
     <Dialog open={true} onClose={onClose}>
@@ -71,7 +72,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
         {loading && <CircularProgress />}
         {error && <p style={{ color: 'red' }}>{error}</p>}
         {success && <p style={{ color: 'green' }}>{success}</p>}
-        {!loading && (
+        {!loading && !success &&(
           <form onSubmit={handleSubmit}>
             <TextField
               label="Date"
@@ -82,6 +83,9 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
               margin="normal"
               InputLabelProps={{
                 shrink: true,
+              }}
+              inputProps={{
+                max: today, // Set the maximum selectable date to today
               }}
             />
             <div style={{ display: 'flex', gap: '10px' }}>

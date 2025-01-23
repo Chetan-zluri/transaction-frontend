@@ -4,6 +4,10 @@ export const validateFile = (file: File | null): string => {
     return "Please select a file to upload";
   }
 
+  if (file.size === 0) {
+    return "Error uploading file: File is empty";
+  }
+
   if (file.size > 1 * 1024 * 1024) {
     return "File size should be less than 1 MB";
   }
