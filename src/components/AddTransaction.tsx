@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, CircularProgress } from '@mui/material';
 import { addTransaction } from '../services/transactionService';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 interface AddTransactionProps {
   onAdd: () => void;

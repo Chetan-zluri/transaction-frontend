@@ -1,7 +1,7 @@
-import React from 'react';
+// import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ToastContainer } from 'react-toastify';
+// import { ToastContainer } from 'react-toastify';
 import UploadCSV from './UploadCSV';
 import { uploadCSV } from '../services/transactionService';
 import { validateFile } from '../utils/validations';
@@ -10,7 +10,7 @@ jest.mock('../services/transactionService');
 jest.mock('../utils/validations');
 
 // Mock window.URL.createObjectURL
-global.URL.createObjectURL = jest.fn();
+// global.URL.createObjectURL = jest.fn();
 
 describe('UploadCSV Component', () => {
   const mockOnUpload = jest.fn();

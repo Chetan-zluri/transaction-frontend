@@ -88,9 +88,9 @@ const App: React.FC = () => {
     setRefresh((prev) => prev + 1);
   };
 
-  const handleDelete = () => {
-    setRefresh((prev) => prev + 1);
-  };
+  // const handleDelete = () => {
+  //   setRefresh((prev) => prev + 1);
+  // };
 
   const handleOpenAddTransaction = () => setOpenAddTransaction(true);
   const handleCloseAddTransaction = () => setOpenAddTransaction(false);
