@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1737654272722" clover="3.2.0">
-  <project timestamp="1737654272722" name="All files">
-    <metrics statements="175" coveredstatements="134" conditionals="96" coveredconditionals="59" methods="27" coveredmethods="18" elements="298" coveredelements="211" complexity="0" loc="175" ncloc="175" packages="4" files="6" classes="6"/>
+<coverage generated="1737700999522" clover="3.2.0">
+  <project timestamp="1737700999523" name="All files">
+    <metrics statements="175" coveredstatements="143" conditionals="96" coveredconditionals="59" methods="27" coveredmethods="23" elements="298" coveredelements="225" complexity="0" loc="175" ncloc="175" packages="4" files="6" classes="6"/>
     <package name="src">
-      <metrics statements="11" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="0"/>
+      <metrics statements="11" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="5"/>
       <file name="App.tsx" path="C:\Users\cheth\OneDrive\Desktop\Finance\Transactions\src\App.tsx">
-        <metrics statements="11" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="0"/>
+        <metrics statements="11" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="5"/>
         <line num="82" count="1" type="stmt"/>
-        <line num="83" count="0" type="stmt"/>
-        <line num="84" count="0" type="stmt"/>
-        <line num="85" count="0" type="stmt"/>
-        <line num="87" count="0" type="stmt"/>
+        <line num="83" count="11" type="stmt"/>
+        <line num="84" count="11" type="stmt"/>
+        <line num="85" count="11" type="stmt"/>
+        <line num="87" count="11" type="stmt"/>
         <line num="88" count="0" type="stmt"/>
-        <line num="95" count="0" type="stmt"/>
-        <line num="96" count="0" type="stmt"/>
-        <line num="98" count="0" type="stmt"/>
-        <line num="99" count="0" type="stmt"/>
-        <line num="101" count="0" type="stmt"/>
+        <line num="95" count="11" type="stmt"/>
+        <line num="96" count="11" type="stmt"/>
+        <line num="98" count="11" type="stmt"/>
+        <line num="99" count="11" type="stmt"/>
+        <line num="101" count="11" type="stmt"/>
       </file>
     </package>
     <package name="src.components">
@@ -87,24 +87,25 @@
         <line num="34" count="1" type="stmt"/>
         <line num="35" count="1" type="stmt"/>
         <line num="36" count="1" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
         <line num="39" count="1" type="stmt"/>
         <line num="40" count="1" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="42" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="41" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="1" type="stmt"/>
         <line num="43" count="1" type="stmt"/>
-        <line num="44" count="1" type="stmt"/>
-        <line num="46" count="0" type="stmt"/>
-        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
         <line num="48" count="0" type="stmt"/>
-        <line num="49" count="0" type="stmt"/>
-        <line num="51" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
-        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
         <line num="58" count="0" type="stmt"/>
         <line num="59" count="0" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
-        <line num="61" count="0" type="stmt"/>
-        <line num="65" count="10" type="stmt"/>
+        <line num="64" count="10" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
         <line num="67" count="0" type="stmt"/>
         <line num="68" count="0" type="stmt"/>
@@ -112,8 +113,7 @@
         <line num="70" count="0" type="stmt"/>
         <line num="71" count="0" type="stmt"/>
         <line num="72" count="0" type="stmt"/>
-        <line num="73" count="0" type="stmt"/>
-        <line num="76" count="10" type="stmt"/>
+        <line num="75" count="10" type="stmt"/>
       </file>
     </package>
     <package name="src.services">

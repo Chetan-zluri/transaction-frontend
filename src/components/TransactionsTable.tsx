@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState} from 'react';
 import { Dialog,CircularProgress, DialogActions, DialogContent, DialogTitle, Button, TextField, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Checkbox } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar } from '@fortawesome/free-solid-svg-icons';
@@ -45,6 +45,7 @@ const TransactionsTable: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [chartDate,setChartDate] = useState('');
+
   useEffect(() => {
     const fetchTransactions = async () => {
       setLoading(true);
@@ -119,17 +120,14 @@ const TransactionsTable: React.FC = () => {
     const currencyCount: { [currency: string]: number } = {};
   
     filteredTransactions.forEach(transaction => {
-      // Convert amount to INR
       const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
-  
-      // Aggregate amounts by date for the bar chart
+      //Bar Graph-Amount vs Date
       if (aggregatedData[transaction.date]) {
         aggregatedData[transaction.date] += amountInINR;
       } else {
         aggregatedData[transaction.date] = amountInINR;
       }
-  
-      // Count occurrences of each currency for the pie chart
+      // Count occurrences[pie chart]
       if (currencyCount[transaction.Currency]) {
         currencyCount[transaction.Currency]++;
       } else {
@@ -194,7 +192,7 @@ const TransactionsTable: React.FC = () => {
     setEditFormData({
       date: formatDate(transaction.date),
       description: transaction.description,
-      amount: transaction.amount.toString(), // Ensure amount is a string in the form data
+      amount: transaction.amount.toString(),
       Currency: transaction.Currency
     });
   };
@@ -231,7 +229,7 @@ const TransactionsTable: React.FC = () => {
         id,
         date: editFormData.date,
         description: editFormData.description,
-        amount: parseFloat(editFormData.amount), // Convert amount to number
+        amount: parseFloat(editFormData.amount),
         Currency: editFormData.Currency
       };
       const { data, error } = await updateTransaction(id, updatedTransaction);
@@ -282,8 +280,10 @@ const TransactionsTable: React.FC = () => {
   };
 
   const handleChangeLimit = (event: SelectChangeEvent<number>) => {
+    const currentPosition = (page - 1) * limit;
+    const newPage = Math.floor(currentPosition / limit) + 1;
     setLimit(event.target.value as number);
-    setPage(1); // Reset page number to 1 when changing the limit
+    setPage(newPage);
   };
 
   const handleSearch = () => {
@@ -447,7 +447,12 @@ const TransactionsTable: React.FC = () => {
     return <div>{error}</div>;
   }
   if (!filteredTransactions || filteredTransactions.length === 0) {
-    return <div>No transactions available.</div>;
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGxieXFvMjNtbHp1eWhnaXgyZjZzMmhnbnZsbHYxNno1MzIyMGJ5bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Km2YiI2mzRKgw/giphy.gif" alt="No transactions found" style={{ width: '300px', height: '300px' }} />
+        <p>No transactions available.</p>
+      </div>
+    );
   }
   return (
     <div>
@@ -685,15 +690,15 @@ const TransactionsTable: React.FC = () => {
       </>
     )}
   </DialogContent>
-  <DialogActions>
-    <Button onClick={() => handleEditSubmit(editTransactionId!)} color="primary" disabled={deleteLoading}>
-      Save
-    </Button>
-    <Button onClick={() => setEditTransactionId(null)} color="primary" disabled={deleteLoading}>
-      Cancel
-    </Button>
-  </DialogActions>
-</Dialog>
+    <DialogActions>
+      <Button onClick={() => handleEditSubmit(editTransactionId!)} color="primary" disabled={deleteLoading}>
+        Save
+      </Button>
+      <Button onClick={() => setEditTransactionId(null)} color="primary" disabled={deleteLoading}>
+        Cancel
+      </Button>
+    </DialogActions>
+  </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteTransactionId !== null} onClose={() => setDeleteTransactionId(null)}>
@@ -770,17 +775,17 @@ const TransactionsTable: React.FC = () => {
       </Dialog>
 
       <Dialog open={chartDialogOpen} onClose={() => setChartDialogOpen(false)} maxWidth="lg" fullWidth>
-    <DialogTitle>Transactions Chart on {chartDate}</DialogTitle>
-    <DialogContent>
-        <Bar data={generateChartData().barData} />
-        <Pie data={generateChartData().pieData} />
-    </DialogContent>
-    <DialogActions>
-        <Button onClick={() => setChartDialogOpen(false)} color="primary">
-            Close
-        </Button>
-    </DialogActions>
-</Dialog>
+          <DialogTitle>Transactions Chart on {chartDate}</DialogTitle>
+          <DialogContent>
+              <Bar data={generateChartData().barData} />
+              <Pie data={generateChartData().pieData} />
+          </DialogContent>
+          <DialogActions>
+              <Button onClick={() => setChartDialogOpen(false)} color="primary">
+                  Close
+              </Button>
+          </DialogActions>
+      </Dialog>
     </div>    
   );
 }

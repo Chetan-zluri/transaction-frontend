@@ -23,6 +23,15 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
     }
   };
 
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -36,6 +45,13 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
       return;
     }
     try {
+      const fileContent = await readFileContent(file!);
+      if (!fileContent.trim()) {
+        setError('The file content is empty.');
+        setLoading(false);
+        toast.error('The file content is empty.', { autoClose: 2000 });
+      return;
+      }
       const { data, error } = await uploadCSV(file!);
       setLoading(false);
       if (error) {
