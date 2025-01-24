@@ -1,8 +1,8 @@
 /* General Styles */
 body {
   font-family: 'Arial', sans-serif;
-  color: #2C3E50;
-  background: url('your-background-image-url.jpg') no-repeat center center fixed; /* Background image */
+  color: #FFFFFF; /* White text for readability */
+  background: url('https://media.istockphoto.com/id/1661960136/photo/backlit-black-piggy-bank-on-dark-background-illustration-of-the-concept-of-financial.jpg?s=612x612&w=0&k=20&c=BsXndZdwicirdY50vjBigXLAXy0t4St0xMV0E-3JF9o=') no-repeat center center fixed; /* Black background image */
   background-size: cover; /* Cover the entire background */
   margin: 0;
   padding: 0;
@@ -12,9 +12,11 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.8); /* White background with transparency */
+  background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+  backdrop-filter: blur(10px); /* Frosted-glass effect */
   border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2); /* Subtle white shadow */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Soft border to blend with the black background */
 }
 
 /* Header Styles */
@@ -25,7 +27,7 @@ header {
 
 h1 {
   font-weight: bold;
-  color: #00695c; /* Dark teal color */
+  color: #80cbc4; /* Soft teal for a modern look */
 }
 
 /* Action Buttons */
@@ -36,7 +38,7 @@ h1 {
 }
 
 button {
-  background-color: #00796b; /* Teal color */
+  background-color: #26a69a; /* Bright teal color */
   color: white;
   border: none;
   border-radius: 5px;
@@ -47,7 +49,7 @@ button {
 }
 
 button:hover {
-  background-color: #004d40; /* Darker teal on hover */
+  background-color: #00796b; /* Darker teal on hover */
 }
 
 /* Table Styles */
@@ -55,6 +57,10 @@ button:hover {
   width: 100%;
   overflow-x: auto;
   margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.1); /* Transparent white overlay */
+  backdrop-filter: blur(5px); /* Subtle blur effect */
+  border-radius: 10px;
+  padding: 10px;
 }
 
 .transactions-table {
@@ -65,22 +71,22 @@ button:hover {
 
 .transactions-table th, .transactions-table td {
   padding: 12px; /* Increased padding */
-  border: 1px solid #00796b; /* Teal border */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Semi-transparent white border */
   text-align: center;
   transition: background-color 0.3s;
 }
 
 .transactions-table th {
-  background-color: #00796b; /* Teal header */
+  background-color: rgba(38, 166, 154, 0.8); /* Teal header with slight transparency */
   color: white;
 }
 
 .transactions-table tr:nth-child(even) {
-  background-color: #b2ebf2; /* Light teal for even rows */
+  background-color: rgba(0, 121, 107, 0.3); /* Dark teal for even rows */
 }
 
 .transactions-table tr:hover {
-  background-color: #80deea; /* Light blue on hover */
+  background-color: rgba(38, 166, 154, 0.5); /* Lighter teal on hover */
 }
 
 /* Media Queries */
@@ -95,7 +101,7 @@ button:hover {
 @media (max-width: 480px) {
   .transactions-table th,
   .transactions-table td {
-    font-size: 8px; 
+    font-size: 8px;
     padding: 2px;
   }
 }
@@ -110,7 +116,7 @@ button:hover {
 
 .page-info {
   font-size: 14px;
-  color: #2C3E50;
+  color: #FFFFFF; /* White text for contrast */
 }
 
 .page-controls {
@@ -119,7 +125,7 @@ button:hover {
 }
 
 .page-controls button {
-  background-color: #00796b; /* Teal color */
+  background-color: #26a69a; /* Bright teal */
   color: white;
   border: none;
   border-radius: 5px;
@@ -130,5 +136,5 @@ button:hover {
 }
 
 .page-controls button:hover {
-  background-color: #004d40; /* Darker teal on hover */
+  background-color: #00796b; /* Darker teal on hover */
 }

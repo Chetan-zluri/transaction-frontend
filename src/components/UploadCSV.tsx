@@ -35,7 +35,6 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
       toast.error(fileError, { autoClose: 2000 });
       return;
     }
-
     try {
       const { data, error } = await uploadCSV(file!);
       setLoading(false);

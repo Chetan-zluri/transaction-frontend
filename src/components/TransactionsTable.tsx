@@ -17,6 +17,7 @@ interface Transaction {
   Currency: string;
 }
 
+
 const TransactionsTable: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -451,35 +452,66 @@ const TransactionsTable: React.FC = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <FormControl variant="outlined" style={{ minWidth: 120 }}>
-          <InputLabel>Rows per page</InputLabel>
-          <Select value={limit} onChange={handleChangeLimit} label="Rows per page">
-            <MenuItem value={5}>5</MenuItem>
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={20}>20</MenuItem>
-          </Select>
-        </FormControl>
+      <FormControl
+        variant="outlined"
+        style={{
+          minWidth: 120,
+          borderColor: 'white',
+          color: 'white',
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'white',
+            },
+            '&:hover fieldset': {
+              borderColor: 'white',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'white',
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: 'white',
+          },
+          '& .MuiInputLabel-root.Mui-focused': {
+            color: 'white',
+          },
+        }}
+      >
+        <InputLabel>Rows per page</InputLabel>
+        <Select
+          value={limit}
+          onChange={handleChangeLimit}
+          label="Rows per page"
+          style={{ color: 'white' }}
+        >
+          <MenuItem value={5}>5</MenuItem>
+          <MenuItem value={10}>10</MenuItem>
+          <MenuItem value={20}>20</MenuItem>
+        </Select>
+      </FormControl>
         <div>
         {renderPageNumbers()}
           <Tooltip title="Search" arrow>
-            <IconButton onClick={() => setSearchDialogOpen(true)} style={{ color: 'black' }}>
+            <IconButton onClick={() => setSearchDialogOpen(true)} style={{ color: 'white' }}>
               <FontAwesomeIcon icon={faSearch} />
             </IconButton>
           </Tooltip>
           {selectedTransactions.length > 0 && (
             <Tooltip title="Delete Selected" arrow>
-              <IconButton onClick={() => setDeleteDialogOpen(true)} style={{ color: 'black' }}>
+              <IconButton onClick={() => setDeleteDialogOpen(true)} style={{ color: 'red' }}>
                 <FontAwesomeIcon icon={faTrash} />
               </IconButton>
             </Tooltip>
           )}
           <Tooltip title="Download PDF" arrow>
-            <IconButton onClick={() => generatePDF(false)} style={{ color: 'black' }}>
+            <IconButton onClick={() => generatePDF(false)} style={{ color: 'white' }}>
               <FontAwesomeIcon icon={faDownload} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Print PDF" arrow>
-            <IconButton onClick={() => generatePDF(true)} style={{ color: 'black' }}>
+            <IconButton onClick={() => generatePDF(true)} style={{ color: 'white' }}>
               <FontAwesomeIcon icon={faPrint} />
             </IconButton>
           </Tooltip>
@@ -494,11 +526,11 @@ const TransactionsTable: React.FC = () => {
                 onChange={handleSelectAll}
                 color="primary"
                 sx={{
-                  '& .MuiSvgIcon-root': { fontSize: 20 }, // Decrease the size
+                  '& .MuiSvgIcon-root': { fontSize: 20,color:"white" }, // Decrease the size
                   '&.Mui-checked': {
-                    color: 'white', // Tick mark color
+                    color: 'black', // Tick mark color
                     '& .MuiSvgIcon-root': {
-                      color: 'black', // Checkbox background color
+                      color: 'white', // Checkbox background color
                     },
                   },
                 }}
@@ -522,11 +554,11 @@ const TransactionsTable: React.FC = () => {
                   onChange={(e) => handleRowSelect(e, transaction.id)}
                   color="primary"
                   sx={{
-                    '& .MuiSvgIcon-root': { fontSize: 20 }, // Decrease the size
+                    '& .MuiSvgIcon-root': { fontSize: 20, color:"white" }, // Decrease the size
                     '&.Mui-checked': {
-                      color: 'white', // Tick mark color
+                      color: 'black', // Tick mark color
                       '& .MuiSvgIcon-root': {
-                        color: 'black', // Checkbox background color
+                        color: 'white', // Checkbox background color
                       },
                     },
                   }}
