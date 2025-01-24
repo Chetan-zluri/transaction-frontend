@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, CircularProgress } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
@@ -6,6 +5,8 @@ import { uploadCSV } from '../services/transactionService';
 import { validateFile } from '../utils/validations';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 interface UploadCSVProps {
   onUpload: () => void;
@@ -78,14 +79,18 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
   };
 
   const downloadInvalidRows = (invalidRows: any[]) => {
-    const blob = new Blob([JSON.stringify(invalidRows, null, 2)], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'invalid_rows.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text('Invalid Rows', 14, 22);
+  doc.setFontSize(14);
+  doc.text('Invalid Rows:', 14, 30);
+  // @ts-ignore
+  doc.autoTable({
+    startY: 35,
+    head: [['Index', 'Row Data']],
+    body: invalidRows.map((row, index) => [index + 1, JSON.stringify(row, null, 2)])
+  });
+  doc.save('invalid_duplicate_rows.pdf');
   };
 
   return (

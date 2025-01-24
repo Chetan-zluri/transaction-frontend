@@ -37,6 +37,11 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
       setLoading(false);
       return;
     }
+    if (date > today) {
+      setError('Invalid Date');
+      setLoading(false);
+      return;
+    }
     try {
       await addTransaction({
         date,

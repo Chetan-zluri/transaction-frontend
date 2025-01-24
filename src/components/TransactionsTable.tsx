@@ -1,9 +1,10 @@
 import React, { useEffect, useState} from 'react';
-import { Dialog,CircularProgress, DialogActions, DialogContent, DialogTitle, Button, TextField, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Checkbox } from '@mui/material';
+import { Dialog,CircularProgress, DialogActions, DialogContent, DialogTitle, Button, TextField, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Checkbox, Typography } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar,faFilter } from '@fortawesome/free-solid-svg-icons';
 import { getAllTransactions, updateTransaction, deleteTransaction,deleteTransactions } from '../services/transactionService';
 import { Bar, Pie } from 'react-chartjs-2';
+import { FileCopy as FileCopyIcon } from '@mui/icons-material';
 import {jsPDF} from 'jspdf';
 import 'jspdf-autotable';
 import { Chart, registerables } from 'chart.js';
@@ -45,6 +46,16 @@ const TransactionsTable: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [chartDate,setChartDate] = useState('');
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [filterData, setFilterData] = useState({
+  startDate: '',
+  endDate: '',
+  minAmount: '',
+  maxAmount: '',
+  currency: '',
+  description: '',
+});
+const [sortCriteria, setSortCriteria] = useState('');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -187,6 +198,19 @@ const TransactionsTable: React.FC = () => {
     }
   };
 
+  const handleCopyToClipboard = () => {
+    const tableContent = document.querySelector('.transactions-table')?.outerHTML;
+    if (tableContent) {
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = tableContent;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempTextArea);
+      alert('Table content copied to clipboard!');
+    }
+  };
+
   const handleEditClick = (transaction: any) => {
     setEditTransactionId(transaction.id);
     setEditFormData({
@@ -214,6 +238,8 @@ const TransactionsTable: React.FC = () => {
     setError('');
     setSuccess('');
     setEditLoading(true);
+    const today = new Date();
+    const editDate = new Date(editFormData.date);
     if (!isNaN(Number(editFormData.Currency))) {
       setError('Currency must be in the correct format');
       setEditLoading(false);
@@ -224,6 +250,23 @@ const TransactionsTable: React.FC = () => {
       setEditLoading(false);
       return;
     }
+    if (editDate > today) {
+      setError('Invalid Date');
+      setEditLoading(false);
+      return;
+    }
+    const duplicateTransaction = transactions.find(transaction => 
+      transaction.date === editFormData.date && 
+      transaction.description === editFormData.description && 
+      transaction.id !== id // Ensure it's not the transaction being edited
+    );
+  
+    if (duplicateTransaction) {
+      setError('Transaction already exists');
+      setEditLoading(false);
+      return;
+    }
+
     try {
       const updatedTransaction = {
         id,
@@ -328,6 +371,42 @@ const TransactionsTable: React.FC = () => {
     } else {
       setSelectedTransactions(selectedTransactions.filter(selectedId => selectedId !== id));
     }
+  };
+
+  const applyFilters = () => {
+    let filtered = transactions;
+    if (filterData.startDate) {
+      filtered = filtered.filter(transaction => new Date(transaction.date) >= new Date(filterData.startDate));
+    }
+    if (filterData.endDate) {
+      filtered = filtered.filter(transaction => new Date(transaction.date) <= new Date(filterData.endDate));
+    }
+    if (filterData.minAmount) {
+      filtered = filtered.filter(transaction => parseFloat(convertToINR(transaction.amount, transaction.Currency)) >= parseFloat(filterData.minAmount));
+    }
+    if (filterData.maxAmount) {
+      filtered = filtered.filter(transaction => parseFloat(convertToINR(transaction.amount, transaction.Currency)) <= parseFloat(filterData.maxAmount));
+    }
+    if (filterData.currency) {
+      filtered = filtered.filter(transaction => transaction.Currency.toLowerCase().includes(filterData.currency.toLowerCase()));
+    }
+    if (filterData.description) {
+      filtered = filtered.filter(transaction => transaction.description.toLowerCase().includes(filterData.description.toLowerCase()));
+    }
+    if (sortCriteria) {
+      filtered.sort((a, b) => {
+        switch (sortCriteria) {
+          case 'descriptionAsc':
+            return a.description.localeCompare(b.description);
+          case 'descriptionDesc':
+            return b.description.localeCompare(a.description);
+          default:
+            return 0;
+        }
+      });
+    }
+    setFilteredTransactions(filtered);
+    setFilterDialogOpen(false);
   };
 
   const renderPageNumbers = () => {
@@ -510,6 +589,16 @@ const TransactionsTable: React.FC = () => {
               </IconButton>
             </Tooltip>
           )}
+          <Tooltip title="Sort and Filter" arrow>
+            <IconButton onClick={() => setFilterDialogOpen(true)} style={{ color: 'white' }}>
+              <FontAwesomeIcon icon={faFilter} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Copy to Clipboard" arrow>
+          <IconButton onClick={handleCopyToClipboard} color="inherit">
+            <FileCopyIcon />
+          </IconButton>
+          </Tooltip>
           <Tooltip title="Download PDF" arrow>
             <IconButton onClick={() => generatePDF(false)} style={{ color: 'white' }}>
               <FontAwesomeIcon icon={faDownload} />
@@ -685,8 +774,8 @@ const TransactionsTable: React.FC = () => {
             margin="normal"
           />
         </form>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {success && <p style={{ color: 'green' }}>{success}</p>}
+        {error && <Typography style={{ color: 'red' }}>{error}</Typography>}
+        {success && <Typography style={{ color: 'green' }}>{success}</Typography>}
       </>
     )}
   </DialogContent>
@@ -786,6 +875,86 @@ const TransactionsTable: React.FC = () => {
               </Button>
           </DialogActions>
       </Dialog>
+
+      <Dialog open={filterDialogOpen} onClose={() => setFilterDialogOpen(false)}>
+        <DialogTitle>Filter and Sort Transactions</DialogTitle>
+        <DialogContent>
+          <form>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={filterData.startDate}
+              onChange={(e) => setFilterData({ ...filterData, startDate: e.target.value })}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={filterData.endDate}
+              onChange={(e) => setFilterData({ ...filterData, endDate: e.target.value })}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Min Amount"
+              type="number"
+              value={filterData.minAmount}
+              onChange={(e) => setFilterData({ ...filterData, minAmount: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Max Amount"
+              type="number"
+              value={filterData.maxAmount}
+              onChange={(e) => setFilterData({ ...filterData, maxAmount: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Currency"
+              value={filterData.currency}
+              onChange={(e) => setFilterData({ ...filterData, currency: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Description"
+              value={filterData.description}
+              onChange={(e) => setFilterData({ ...filterData, description: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
+            <FormControl component="fieldset" fullWidth margin="normal">
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={sortCriteria}
+                onChange={(e) => setSortCriteria(e.target.value)}
+                fullWidth
+              >
+                <MenuItem value="descriptionAsc">Description (A-Z)</MenuItem>
+                <MenuItem value="descriptionDesc">Description (Z-A)</MenuItem>
+              </Select>
+            </FormControl>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => applyFilters()} color="primary">
+            Apply
+          </Button>
+          <Button onClick={() => setFilterDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </div>    
   );
 }

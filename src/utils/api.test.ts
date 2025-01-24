@@ -8,7 +8,9 @@ describe("API Module", () => {
   });
 
   it("should create an axios instance with the correct baseURL and headers", () => {
-    expect(api.defaults.baseURL).toBe("http://localhost:5000/api");
+    expect(api.defaults.baseURL).toBe(
+      "https://transaction-dmx4.onrender.com/api"
+    );
     expect(api.defaults.headers["Content-Type"]).toBe("application/json");
   });
 
