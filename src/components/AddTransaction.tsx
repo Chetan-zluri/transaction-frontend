@@ -36,7 +36,9 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
     setError('');
     setSuccess('');
     setLoading(true);
-    if (!date || !description || !amount || !currency) {
+    const trimmeddescription= description.trim();
+    const minAllowedDate = new Date('1980-01-01');
+    if (!date || !trimmeddescription || !amount || !currency) {
       setError('All fields are required');
       setLoading(false);
       return;
@@ -56,10 +58,15 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
       setLoading(false);
       return;
     } 
+    if (new Date(date) < minAllowedDate) {
+      setError('Date cannot be before January 1, 1980');
+      setLoading(false);
+      return;
+    }
     try {
       await addTransaction({
         date,
-        description,
+        description:trimmeddescription,
         amount: parseFloat(amount),
         Currency: currency,
       });

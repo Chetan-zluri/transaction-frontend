@@ -100,7 +100,10 @@ export const deleteTransactions = async (ids: number[]) => {
 
 // Upload CSV file
 
-export const uploadCSV = async (file: File) => {
+export const uploadCSV = async (
+  file: File,
+  options?: { onUploadProgress?: (progressEvent: ProgressEvent) => void }
+) => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -110,6 +113,7 @@ export const uploadCSV = async (file: File) => {
         "Content-Type": "multipart/form-data",
       },
     });
+    onUploadProgress: options?.onUploadProgress;
 
     const data = response.data;
 

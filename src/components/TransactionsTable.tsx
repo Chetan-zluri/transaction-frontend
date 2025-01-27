@@ -18,7 +18,6 @@ interface Transaction {
   Currency: string;
 }
 
-
 const TransactionsTable: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +55,7 @@ const TransactionsTable: React.FC = () => {
   description: '',
 });
 const [sortCriteria, setSortCriteria] = useState('');
+const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -66,6 +66,8 @@ const [sortCriteria, setSortCriteria] = useState('');
         setFilteredTransactions(transactions);
         setTotalPages(totalPages);
         setError('');
+        const { transactions: allTrans } = await getAllTransactions(1, 99999);
+        setAllTransactions(allTrans);
       } catch (error) {
         console.error('Error fetching transactions:', error);
         setError('Failed to fetch transactions. Please try again later.');
@@ -109,8 +111,15 @@ const [sortCriteria, setSortCriteria] = useState('');
       if (error) {
         setError(error);
       } else {
-        setTransactions(transactions.filter(transaction => transaction.id !== id));
-        setFilteredTransactions(filteredTransactions.filter(transaction => transaction.id !== id));
+        const remainingTransactions = transactions.filter(transaction => transaction.id !== id);
+      setTransactions(remainingTransactions);
+      setFilteredTransactions(remainingTransactions);
+      if (remainingTransactions.length < limit && page < totalPages) {
+        const { transactions: newTransactions } = await getAllTransactions(page + 1, limit - remainingTransactions.length);
+        const combinedTransactions = [...remainingTransactions, ...newTransactions];
+        setTransactions(combinedTransactions);
+        setFilteredTransactions(combinedTransactions);
+      }
         setSuccess('Transaction deleted successfully');
         setTimeout(() => {
           setDeleteTransactionId(null);
@@ -132,10 +141,10 @@ const [sortCriteria, setSortCriteria] = useState('');
     filteredTransactions.forEach(transaction => {
       const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
       //Bar Graph-Amount vs Date
-      if (aggregatedData[transaction.date]) {
-        aggregatedData[transaction.date] += amountInINR;
+      if (aggregatedData[transaction.date.split('T')[0]]) {
+        aggregatedData[transaction.date.split('T')[0]] += amountInINR;
       } else {
-        aggregatedData[transaction.date] = amountInINR;
+        aggregatedData[transaction.date.split('T')[0]] = amountInINR;
       }
       // Count occurrences[pie chart]
       if (currencyCount[transaction.Currency]) {
@@ -182,15 +191,11 @@ const [sortCriteria, setSortCriteria] = useState('');
       } else {
         const remainingTransactions = transactions.filter(transaction => !selectedTransactions.includes(transaction.id));
       setSelectedTransactions([]);
-
-      // Check if the current page is empty after deletion
       if (remainingTransactions.length === 0 && page > 1) {
         setPage(page - 1);
       } 
       const newPage = remainingTransactions.length === 0 && page > 1 ? page - 1 : page;
       const { transactions: newTransactions, totalPages: newTotalPages } = await getAllTransactions(newPage, limit);
-
-      // Fetch transactions for the current page after deletion
       setTransactions(newTransactions);
       setFilteredTransactions(newTransactions);
       setTotalPages(newTotalPages);
@@ -210,8 +215,15 @@ const [sortCriteria, setSortCriteria] = useState('');
   };
 
   const handleCopyToClipboard = () => {
-    const tableContent = document.querySelector('.transactions-table')?.outerHTML;
-    if (tableContent) {
+    const table = document.querySelector('.transactions-table');
+    if (table) {
+      const rows = Array.from(table.querySelectorAll('tr'));
+      let tableContent = '';
+      rows.forEach((row) => {
+        const cells = Array.from(row.querySelectorAll('th, td'));
+        const rowContent = cells.map(cell => (cell as HTMLElement).innerText).join('\t');
+        tableContent += rowContent + '\n'; // Add a new line after each row
+      });
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = tableContent;
       document.body.appendChild(tempTextArea);
@@ -259,6 +271,7 @@ const [sortCriteria, setSortCriteria] = useState('');
     setEditLoading(true);
     const today = new Date();
     const editDate = new Date(editFormData.date);
+    const minAllowedDate = new Date('1980-01-01');
     if (!isNaN(Number(editFormData.Currency))) {
       setError('Currency must be in the correct format');
       setEditLoading(false);
@@ -274,12 +287,17 @@ const [sortCriteria, setSortCriteria] = useState('');
       setEditLoading(false);
       return;
     }
+    if (editDate < minAllowedDate) {
+      setError('Date cannot be before January 1, 1980');
+      setEditLoading(false);
+      return;
+    }
 
     try {
       const updatedTransaction = {
         id,
         date: editFormData.date,
-        description: editFormData.description,
+        description: editFormData.description.trim(),
         amount: parseFloat(editFormData.amount),
         Currency: editFormData.Currency
       };
@@ -342,13 +360,19 @@ const [sortCriteria, setSortCriteria] = useState('');
     if (searchTerm.trim() === '') {
       setFilteredTransactions(transactions);
     } else {
-      const searchResults = transactions.filter(transaction =>
+      const searchResults = allTransactions.filter(transaction =>
         transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         formatDate(transaction.date).toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.amount.toString().includes(searchTerm) ||
         transaction.Currency.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredTransactions(searchResults);
+      const newTotalPages = Math.ceil(searchResults.length / limit);
+    setTotalPages(newTotalPages);
+    
+    // Get the current page slice
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    setFilteredTransactions(searchResults.slice(startIndex, endIndex));
     }
     setSearchDialogOpen(false);
   };
@@ -383,7 +407,7 @@ const [sortCriteria, setSortCriteria] = useState('');
   };
 
   const applyFilters = () => {
-    let filtered = transactions;
+    let filtered = allTransactions;
     if (filterData.startDate) {
       filtered = filtered.filter(transaction => new Date(transaction.date) >= new Date(filterData.startDate));
     }
@@ -414,8 +438,14 @@ const [sortCriteria, setSortCriteria] = useState('');
         }
       });
     }
-    setFilteredTransactions(filtered);
-    setFilterDialogOpen(false);
+    const newTotalPages = Math.ceil(filtered.length / limit);
+  setTotalPages(newTotalPages);
+  
+  // Get the current page slice
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  setFilteredTransactions(filtered.slice(startIndex, endIndex));
+  setFilterDialogOpen(false);
   };
 
   const renderPageNumbers = () => {
@@ -672,7 +702,7 @@ const [sortCriteria, setSortCriteria] = useState('');
               <td style={{ padding: '4px', minWidth: '150px' }}>{highlightText(transaction.description, searchTerm)}</td>
               <td style={{ padding: '4px', width: '100px' }}>{highlightText(transaction.amount.toString(), searchTerm)}</td>
               <td style={{ padding: '4px', width: '100px' }}>{highlightText(transaction.Currency, searchTerm)}</td>
-              <td style={{ padding: '4px', width: '100px' }}>{convertToINR(transaction.amount, transaction.Currency)}</td>
+              <td style={{ padding: '4px', width: '100px' }}>₹{convertToINR(transaction.amount, transaction.Currency)}</td>
               <td>
                 <Tooltip title="Edit" arrow>
                   <IconButton onClick={() => handleEditClick(transaction)} style={{ color: 'green' }}>
@@ -685,7 +715,7 @@ const [sortCriteria, setSortCriteria] = useState('');
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="View Charts" arrow>
-            <IconButton onClick={() => handleOpenChartDialog(transaction.date)} style={{ color: 'blue' }}>
+            <IconButton onClick={() => handleOpenChartDialog(transaction.date.split('T')[0])} style={{ color: 'blue' }}>
               <FontAwesomeIcon icon={faChartBar} />
             </IconButton>
           </Tooltip>
@@ -884,8 +914,12 @@ const [sortCriteria, setSortCriteria] = useState('');
       <Dialog open={chartDialogOpen} onClose={() => setChartDialogOpen(false)} maxWidth="lg" fullWidth>
           <DialogTitle>Transactions Chart on {chartDate}</DialogTitle>
           <DialogContent>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
               <Bar data={generateChartData().barData} />
-              <Pie data={generateChartData().pieData} />
+              <div style={{ marginTop: '20px' }}>
+                <Pie data={generateChartData().pieData} />
+              </div>
+            </div>
           </DialogContent>
           <DialogActions>
               <Button onClick={() => setChartDialogOpen(false)} color="primary">
