@@ -175,6 +175,14 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
                   Cancel
                 </Button>
               </DialogActions>
+              <Box mt={2}>
+                <Typography style={{ color: 'black', fontWeight: 'bold' }}>
+                  Note:
+                </Typography>
+                <Typography style={{ color: 'black' }}>
+                  Invalid and duplicate rows will be exported as a PDF. Check for your reference.
+                </Typography>
+              </Box>
             </form>
           )}
         </DialogContent>

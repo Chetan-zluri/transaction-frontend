@@ -56,18 +56,28 @@ const TransactionsTable: React.FC = () => {
 });
 const [sortCriteria, setSortCriteria] = useState('');
 const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+const [filteredAllTransactions, setFilteredAllTransactions] = useState<Transaction[]>([]);
+const [isFiltered, setIsFiltered] = useState(false);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       setLoading(true);
       try {
-        const { transactions, totalPages } = await getAllTransactions(page, limit);
-        setTransactions(transactions);
-        setFilteredTransactions(transactions);
-        setTotalPages(totalPages);
+        if (!isFiltered) {
+          const { transactions, totalPages } = await getAllTransactions(page, limit);
+          setTransactions(transactions);
+          setFilteredTransactions(transactions);
+          setTotalPages(totalPages);
+          if (allTransactions.length === 0) {
+            const { transactions: allTrans } = await getAllTransactions(1, 99999);
+            setAllTransactions(allTrans);
+          }
+        } else {
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          setFilteredTransactions(filteredAllTransactions.slice(startIndex, endIndex));
+        }
         setError('');
-        const { transactions: allTrans } = await getAllTransactions(1, 99999);
-        setAllTransactions(allTrans);
       } catch (error) {
         console.error('Error fetching transactions:', error);
         setError('Failed to fetch transactions. Please try again later.');
@@ -89,7 +99,7 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
 
     fetchTransactions();
     fetchConversionRates();
-  }, [page, limit]);
+  }, [page, limit,isFiltered,filteredAllTransactions]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -134,52 +144,54 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
     }
   };
 
-  const generateChartData = () => {
-    const aggregatedData: { [date: string]: number } = {};
-    const currencyCount: { [currency: string]: number } = {};
-  
-    filteredTransactions.forEach(transaction => {
-      const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
-      //Bar Graph-Amount vs Date
-      if (aggregatedData[transaction.date.split('T')[0]]) {
-        aggregatedData[transaction.date.split('T')[0]] += amountInINR;
-      } else {
-        aggregatedData[transaction.date.split('T')[0]] = amountInINR;
-      }
-      // Count occurrences[pie chart]
-      if (currencyCount[transaction.Currency]) {
-        currencyCount[transaction.Currency]++;
-      } else {
-        currencyCount[transaction.Currency] = 1;
-      }
-    });
-  
-    const barData = {
-      labels: Object.keys(aggregatedData),
-      datasets: [
-        {
-          label: 'Amount (INR)',
-          data: Object.values(aggregatedData),
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
-  
-    const pieData = {
-      labels: Object.keys(currencyCount),
-      datasets: [
-        {
-          data: Object.values(currencyCount),
-          backgroundColor: Object.keys(currencyCount).map(
-            () => `hsl(${Math.random() * 360}, 100%, 75%)`
-          ),
-        },
-      ],
-    };
-  
-    return { barData, pieData };
+  const generateChartData = (date:string) => {
+    const filteredTransactionsByDate = filteredTransactions.filter(transaction => new Date(transaction.date) <= new Date(date));
+  const aggregatedData: { [date: string]: number } = {};
+  const currencyCount: { [currency: string]: number } = {};
+
+  filteredTransactionsByDate.forEach(transaction => {
+    const amountInINR = parseFloat(convertToINR(transaction.amount, transaction.Currency));
+    const transactionDate = transaction.date.split('T')[0];
+    // Bar Graph-Amount vs Date
+    if (aggregatedData[transactionDate]) {
+      aggregatedData[transactionDate] += amountInINR;
+    } else {
+      aggregatedData[transactionDate] = amountInINR;
+    }
+    // Count occurrences (pie chart)
+    if (currencyCount[transaction.Currency]) {
+      currencyCount[transaction.Currency]++;
+    } else {
+      currencyCount[transaction.Currency] = 1;
+    }
+  });
+
+  const barData = {
+    labels: Object.keys(aggregatedData),
+    datasets: [
+      {
+        label: 'Amount (INR)',
+        data: Object.values(aggregatedData),
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieData = {
+    labels: Object.keys(currencyCount),
+    datasets: [
+      {
+        data: Object.values(currencyCount),
+        backgroundColor: Object.keys(currencyCount).map(
+          () => `hsl(${Math.random() * 360}, 100%, 75%)`
+        ),
+      },
+    ],
+  };
+
+  return { barData, pieData };
   };
   
   const handleDeleteMultiple = async () => {
@@ -297,7 +309,7 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
       const updatedTransaction = {
         id,
         date: editFormData.date,
-        description: editFormData.description.trim(),
+        description: editFormData.description.trim().replace(/\s+/g," "),
         amount: parseFloat(editFormData.amount),
         Currency: editFormData.Currency
       };
@@ -358,7 +370,10 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
 
   const handleSearch = () => {
     if (searchTerm.trim() === '') {
+      setIsFiltered(false);
+      setFilteredAllTransactions([]);
       setFilteredTransactions(transactions);
+      setTotalPages(Math.ceil(transactions.length / limit));
     } else {
       const searchResults = allTransactions.filter(transaction =>
         transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -366,13 +381,14 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
         transaction.amount.toString().includes(searchTerm) ||
         transaction.Currency.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      const newTotalPages = Math.ceil(searchResults.length / limit);
-    setTotalPages(newTotalPages);
-    
-    // Get the current page slice
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    setFilteredTransactions(searchResults.slice(startIndex, endIndex));
+      
+      setIsFiltered(true);
+      setFilteredAllTransactions(searchResults);
+      setTotalPages(Math.ceil(searchResults.length / limit));
+      setPage(1); // Reset to first page when searching
+      
+      // Set current page's data
+      setFilteredTransactions(searchResults.slice(0, limit));
     }
     setSearchDialogOpen(false);
   };
@@ -438,15 +454,13 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
         }
       });
     }
-    const newTotalPages = Math.ceil(filtered.length / limit);
-  setTotalPages(newTotalPages);
-  
-  // Get the current page slice
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  setFilteredTransactions(filtered.slice(startIndex, endIndex));
+    setIsFiltered(true);
+  setFilteredAllTransactions(filtered);
+  setTotalPages(Math.ceil(filtered.length / limit));
+  setPage(1); // Reset to first page when applying filters
+  setFilteredTransactions(filtered.slice(0, limit));
   setFilterDialogOpen(false);
-  };
+};
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -611,6 +625,7 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
           <MenuItem value={5}>5</MenuItem>
           <MenuItem value={10}>10</MenuItem>
           <MenuItem value={20}>20</MenuItem>
+          <MenuItem value={50}>50</MenuItem>
         </Select>
       </FormControl>
         <div>
@@ -915,9 +930,9 @@ const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
           <DialogTitle>Transactions Chart on {chartDate}</DialogTitle>
           <DialogContent>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-              <Bar data={generateChartData().barData} />
+              <Bar data={generateChartData(chartDate).barData} />
               <div style={{ marginTop: '20px' }}>
-                <Pie data={generateChartData().pieData} />
+                <Pie data={generateChartData(chartDate).pieData} />
               </div>
             </div>
           </DialogContent>

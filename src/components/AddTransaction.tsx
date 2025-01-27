@@ -36,7 +36,8 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
     setError('');
     setSuccess('');
     setLoading(true);
-    const trimmeddescription= description.trim();
+    console.log({description})
+    const trimmeddescription= description.trim().replace(/\s+/g," ");
     const minAllowedDate = new Date('1980-01-01');
     if (!date || !trimmeddescription || !amount || !currency) {
       setError('All fields are required');
