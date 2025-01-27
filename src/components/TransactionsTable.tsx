@@ -73,7 +73,6 @@ const [sortCriteria, setSortCriteria] = useState('');
         setLoading(false);
       }
     };
-
     const fetchConversionRates = async () => {
       try {
         const response = await fetch(`https://freeexchange.onrender.com/2019-01-01`);
@@ -181,16 +180,28 @@ const [sortCriteria, setSortCriteria] = useState('');
       if (error) {
         setError(error);
       } else {
-        setTransactions(transactions.filter(transaction => !selectedTransactions.includes(transaction.id)));
-        setFilteredTransactions(filteredTransactions.filter(transaction => !selectedTransactions.includes(transaction.id)));
-        setSuccess('Transactions deleted successfully');
-        setTimeout(() => {
+        const remainingTransactions = transactions.filter(transaction => !selectedTransactions.includes(transaction.id));
+      setSelectedTransactions([]);
+
+      // Check if the current page is empty after deletion
+      if (remainingTransactions.length === 0 && page > 1) {
+        setPage(page - 1);
+      } 
+      const newPage = remainingTransactions.length === 0 && page > 1 ? page - 1 : page;
+      const { transactions: newTransactions, totalPages: newTotalPages } = await getAllTransactions(newPage, limit);
+
+      // Fetch transactions for the current page after deletion
+      setTransactions(newTransactions);
+      setFilteredTransactions(newTransactions);
+      setTotalPages(newTotalPages);
+      setSuccess('Transactions deleted successfully');
+
+      setTimeout(() => {
         setDeleteDialogOpen(false);
-        setSelectedTransactions([]);
         setSuccess('');
       }, 1000);
-      }
-    } catch (err) {
+    }
+  } catch (err) {
       console.error('Error deleting transactions:', err);
       setError('An unexpected error occurred while deleting the transactions. Please try again later.');
     } finally {
@@ -229,6 +240,14 @@ const [sortCriteria, setSortCriteria] = useState('');
     });
   };
 
+  const handleCurrencyChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value
+    });
+  };
+
   const handleOpenChartDialog = (date: string) => {
     setChartDate(date);
     setChartDialogOpen(true);
@@ -252,17 +271,6 @@ const [sortCriteria, setSortCriteria] = useState('');
     }
     if (editDate > today) {
       setError('Invalid Date');
-      setEditLoading(false);
-      return;
-    }
-    const duplicateTransaction = transactions.find(transaction => 
-      transaction.date === editFormData.date && 
-      transaction.description === editFormData.description && 
-      transaction.id !== id // Ensure it's not the transaction being edited
-    );
-  
-    if (duplicateTransaction) {
-      setError('Transaction already exists');
       setEditLoading(false);
       return;
     }
@@ -317,6 +325,7 @@ const [sortCriteria, setSortCriteria] = useState('');
       doc.save('transactions.pdf');
     }
   };
+
 
   const handleChangePage = (newPage: number) => {
     setPage(newPage);
@@ -527,8 +536,7 @@ const [sortCriteria, setSortCriteria] = useState('');
   }
   if (!filteredTransactions || filteredTransactions.length === 0) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGxieXFvMjNtbHp1eWhnaXgyZjZzMmhnbnZsbHYxNno1MzIyMGJ5bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Km2YiI2mzRKgw/giphy.gif" alt="No transactions found" style={{ width: '300px', height: '300px' }} />
+      <div>
         <p>No transactions available.</p>
       </div>
     );
@@ -611,6 +619,7 @@ const [sortCriteria, setSortCriteria] = useState('');
           </Tooltip>
         </div>
       </div>
+      <div className="transactions-table-container">
       <table className="transactions-table">
         <thead>
           <tr>
@@ -685,6 +694,7 @@ const [sortCriteria, setSortCriteria] = useState('');
           ))}
         </tbody>
       </table>
+      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
       <Button
       onClick={() => setPage(prev => Math.max(prev - 1, 1))}
@@ -765,14 +775,22 @@ const [sortCriteria, setSortCriteria] = useState('');
               margin="normal"
             />
           </div>
-          <TextField
-            label="Currency"
-            name="Currency"
-            value={editFormData.Currency}
-            onChange={handleEditChange}
-            fullWidth
-            margin="normal"
-          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Currency</InputLabel>
+            <Select
+              label="Currency"
+              name="Currency"
+              value={editFormData.Currency}
+              onChange={handleCurrencyChange}
+              fullWidth
+            >
+              {Object.keys(conversionRates).map(currency => (
+                <MenuItem key={currency} value={currency}>
+                  {currency}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </form>
         {error && <Typography style={{ color: 'red' }}>{error}</Typography>}
         {success && <Typography style={{ color: 'green' }}>{success}</Typography>}

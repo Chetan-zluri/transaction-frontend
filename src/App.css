@@ -9,7 +9,7 @@ body {
 }
 
 .App {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
   background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
@@ -34,6 +34,7 @@ h1 {
 .action-buttons {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap; /* Ensure buttons wrap on smaller screens */
   margin-bottom: 20px;
 }
 
@@ -65,6 +66,7 @@ button:hover {
 
 .transactions-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   font-size: 0.9em;
 }
@@ -93,16 +95,64 @@ button:hover {
 @media (max-width: 768px) {
   .transactions-table th,
   .transactions-table td {
-    font-size: 10px;
-    padding: 4px;
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: center; /* Center align buttons on smaller screens */
+  }
+
+  .action-buttons button {
+    margin-bottom: 10px;
+    width: 100%; /* Full width buttons on smaller screens */
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page-controls {
+    flex-direction: column;
+  }
+
+  .page-controls button {
+    margin-bottom: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .transactions-table th,
   .transactions-table td {
-    font-size: 8px;
-    padding: 2px;
+    font-size: 10px;
+    padding: 6px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: center; /* Center align buttons on smaller screens */
+  }
+
+  .action-buttons button {
+    margin-bottom: 10px;
+    width: 100%; 
+    font-size: 12px; /* Smaller button text */
+    padding: 8px; /* Full width buttons on smaller screens */
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page-controls {
+    flex-direction: column;
+  }
+
+  .page-controls button {
+    margin-bottom: 10px;
   }
 }
 
@@ -137,4 +187,137 @@ button:hover {
 
 .page-controls button:hover {
   background-color: #00796b; /* Darker teal on hover */
+}
+
+.intro-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  background: url('https://media.istockphoto.com/id/1661960136/photo/backlit-black-piggy-bank-on-dark-background-illustration-of-the-concept-of-financial.jpg?s=612x612&w=0&k=20&c=BsXndZdwicirdY50vjBigXLAXy0t4St0xMV0E-3JF9o=') no-repeat center center fixed;
+  background-size: cover; /* Ensure image covers the whole page */
+  color: #FFFFFF; /* White text */
+  position: relative;
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Top Right Button Styles */
+.top-right-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 1em;
+  padding: 12px 24px;
+  color: #FFFFFF; /* White text */
+  background: none; /* Transparent background */
+  border: 2px solid #FFFFFF; /* White border */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.top-right-button:hover {
+  background-color: #FFFFFF; /* White background */
+  color: #000000; /* Black text on hover */
+}
+
+/* Intro Text */
+.intro-text h1 {
+  font-size: 5em;
+  margin: 0;
+  color: white; /* Teal color */
+}
+
+.intro-text p {
+  font-size: 1.5em;
+  margin: 10px 0 20px;
+}
+
+.money-icon {
+  font-size: 3rem;
+  animation: float 2s ease-in-out infinite;
+  margin: 0.5rem;
+}
+
+/* Responsive Styling */
+@media (max-width: 1200px) { /* Large Tablets and Small Laptops */
+  .money-icon {
+    font-size: 2.5rem;
+  }
+
+  .intro-section h1 {
+    font-size: 2.5rem;
+  }
+
+  .intro-text p {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) { /* Tablets and Medium Devices */
+  .money-icon {
+    font-size: 2rem;
+  }
+
+  .intro-section h1 {
+    font-size: 2rem;
+  }
+
+  .intro-text p {
+    font-size: 1rem;
+  }
+
+  .action-buttons button {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) { /* Phones */
+  .money-icon {
+    font-size: 1.8rem;
+  }
+
+  .intro-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .intro-text p {
+    font-size: 0.9rem;
+  }
+
+  .action-buttons button {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+}
+
+/* Additional Responsive Adjustments for Different Layouts */
+.intro-section {
+  padding: 1rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2rem;
+}
+
+.action-buttons {
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.action-buttons button {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Table Styling */
+.transactions-table {
+  width: 100%;
+  overflow-x: auto; /* Handle smaller screens */
+  font-size: 0.9rem;
 }

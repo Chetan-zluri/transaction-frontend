@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, CircularProgress } from '@mui/material';
+import React, {useEffect, useState } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, CircularProgress, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { addTransaction } from '../services/transactionService';
 import axios from 'axios';
 
@@ -13,15 +13,29 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('');
+  const [currencies, setCurrencies] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const today = new Date().toISOString().split('T')[0];
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const response = await axios.get('https://freeexchange.onrender.com/2019-01-01');
+        setCurrencies(Object.keys(response.data));
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+        setError('Failed to fetch currencies. Please try again later.');
+      }
+    };
+
+    fetchCurrencies();
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true); // Start loading
+    setLoading(true);
     if (!date || !description || !amount || !currency) {
       setError('All fields are required');
       setLoading(false);
@@ -41,7 +55,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
       setError('Invalid Date');
       setLoading(false);
       return;
-    }
+    } 
     try {
       await addTransaction({
         date,
@@ -110,13 +124,19 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
                 margin="normal"
               />
             </div>
-            <TextField
-              label="Currency"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              fullWidth
-              margin="normal"
-            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Currency</InputLabel>
+              <Select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as string)}
+              >
+                {currencies.map((currency) => (
+                  <MenuItem key={currency} value={currency}>
+                    {currency}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <DialogActions>
               <Button type="submit" color="primary">
                 Save
