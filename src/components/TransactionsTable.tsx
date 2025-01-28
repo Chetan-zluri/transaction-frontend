@@ -38,6 +38,7 @@ const TransactionsTable: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount,setTotalCount]= useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
@@ -64,12 +65,13 @@ const [isFiltered, setIsFiltered] = useState(false);
       setLoading(true);
       try {
         if (!isFiltered) {
-          const { transactions, totalPages } = await getAllTransactions(page, limit);
+          const { transactions, totalPages,totalCount } = await getAllTransactions(page, limit);
           setTransactions(transactions);
           setFilteredTransactions(transactions);
           setTotalPages(totalPages);
           if (allTransactions.length === 0) {
-            const { transactions: allTrans } = await getAllTransactions(1, 99999);
+            setTotalCount(totalCount);
+            const { transactions: allTrans } = await getAllTransactions(1, totalCount);
             setAllTransactions(allTrans);
           }
         } else {
@@ -87,7 +89,7 @@ const [isFiltered, setIsFiltered] = useState(false);
     };
     const fetchConversionRates = async () => {
       try {
-        const response = await fetch(`https://freeexchange.onrender.com/2019-01-01`);
+        const response = await fetch(`http://35.154.170.151:8080/2019-01-01`);
         console.log("response",response);
         const data = await response.json();
         setConversionRates(data || {});
@@ -108,7 +110,7 @@ const [isFiltered, setIsFiltered] = useState(false);
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
-
+  console.log(totalCount);
   const convertToINR = (amount: number, Currency: string) => {
     const rate = conversionRates[Currency.toUpperCase()];
     return rate ? (amount * rate).toFixed(2) : 'N/A';
@@ -281,6 +283,7 @@ const [isFiltered, setIsFiltered] = useState(false);
     setError('');
     setSuccess('');
     setEditLoading(true);
+    const trimmeddescription= editFormData.description.trim().replace(/\s+/g," ");
     const today = new Date();
     const editDate = new Date(editFormData.date);
     const minAllowedDate = new Date('1980-01-01');
@@ -309,7 +312,7 @@ const [isFiltered, setIsFiltered] = useState(false);
       const updatedTransaction = {
         id,
         date: editFormData.date,
-        description: editFormData.description.trim().replace(/\s+/g," "),
+        description: trimmeddescription,
         amount: parseFloat(editFormData.amount),
         Currency: editFormData.Currency
       };
