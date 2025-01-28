@@ -1,7 +1,7 @@
 import React, { useEffect, useState} from 'react';
 import { Dialog,CircularProgress, DialogActions, DialogContent, DialogTitle, Button, TextField, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Checkbox, Typography } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar,faFilter } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faDownload, faPrint, faSearch,faChartBar,faFilter} from '@fortawesome/free-solid-svg-icons';
 import { getAllTransactions, updateTransaction, deleteTransaction,deleteTransactions } from '../services/transactionService';
 import { Bar, Pie } from 'react-chartjs-2';
 import { FileCopy as FileCopyIcon } from '@mui/icons-material';
@@ -16,6 +16,11 @@ interface Transaction {
   description: string;
   amount: number;
   Currency: string;
+}
+
+interface ValidationErrors {
+  dateError?: string;
+  amountError?: string;
 }
 
 const TransactionsTable: React.FC = () => {
@@ -59,6 +64,7 @@ const [sortCriteria, setSortCriteria] = useState('');
 const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
 const [filteredAllTransactions, setFilteredAllTransactions] = useState<Transaction[]>([]);
 const [isFiltered, setIsFiltered] = useState(false);
+const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -89,7 +95,7 @@ const [isFiltered, setIsFiltered] = useState(false);
     };
     const fetchConversionRates = async () => {
       try {
-        const response = await fetch(`https://freeexchange.onrender.com/2019-01-01`);
+        const response = await fetch(`https://freeexchange.onrender.com/2020-01-01`);
         console.log("response",response);
         const data = await response.json();
         setConversionRates(data || {});
@@ -426,6 +432,27 @@ const [isFiltered, setIsFiltered] = useState(false);
   };
 
   const applyFilters = () => {
+    let errors: ValidationErrors = {};
+
+  // Validate date range
+  if (filterData.startDate && filterData.endDate) {
+    if (new Date(filterData.startDate) > new Date(filterData.endDate)) {
+      errors.dateError = "Start date cannot be greater than end date.";
+    }
+  }
+
+  // Validate amount range
+  if (filterData.minAmount && filterData.maxAmount) {
+    if (parseFloat(filterData.minAmount) > parseFloat(filterData.maxAmount)) {
+      errors.amountError = "Minimum amount cannot be greater than maximum amount.";
+    }
+  }
+
+  // If there are validation errors, set them and return early
+  if (Object.keys(errors).length > 0) {
+    setValidationErrors(errors);
+    return;
+  }
     let filtered = allTransactions;
     if (filterData.startDate) {
       filtered = filtered.filter(transaction => new Date(transaction.date) >= new Date(filterData.startDate));
@@ -950,6 +977,8 @@ const [isFiltered, setIsFiltered] = useState(false);
         <DialogTitle>Filter and Sort Transactions</DialogTitle>
         <DialogContent>
           <form>
+          {validationErrors.dateError && <p style={{ color: 'red' }}>{validationErrors.dateError}</p>}
+          {validationErrors.amountError && <p style={{ color: 'red' }}>{validationErrors.amountError}</p>}
             <TextField
               label="Start Date"
               type="date"
@@ -988,13 +1017,21 @@ const [isFiltered, setIsFiltered] = useState(false);
               fullWidth
               margin="normal"
             />
-            <TextField
+            <FormControl fullWidth margin="normal">
+            <InputLabel>Currency</InputLabel>
+            <Select
               label="Currency"
               value={filterData.currency}
               onChange={(e) => setFilterData({ ...filterData, currency: e.target.value })}
               fullWidth
-              margin="normal"
-            />
+              >
+              {Object.keys(conversionRates).map(currency => (
+                <MenuItem key={currency} value={currency}>
+                  {currency}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
             <TextField
               label="Description"
               value={filterData.description}

@@ -180,7 +180,7 @@ const UploadCSV: React.FC<UploadCSVProps> = ({ onUpload, onClose }) => {
                   Note:
                 </Typography>
                 <Typography style={{ color: 'black' }}>
-                  Invalid and duplicate rows will be exported as a PDF. Check for your reference.
+                  Invalid and duplicate rows will be exported as a PDF. Check for your reference. Header rows will also be downloaded as invalid. Please ignore that.
                 </Typography>
               </Box>
             </form>

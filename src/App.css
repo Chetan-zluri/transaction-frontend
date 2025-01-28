@@ -201,6 +201,7 @@ button:hover {
   color: #FFFFFF; /* White text */
   position: relative;
   animation: fadeIn 1s ease-in-out;
+  overflow: hidden;
 }
 
 /* Top Right Button Styles */

@@ -108,12 +108,14 @@ const App: React.FC = () => {
   // Handle page navigation
   const handleShowMainPage = () => {
     setShowMainPage(true);
-    localStorage.setItem('showMainPage', 'true'); // Persist state
+    localStorage.setItem('showMainPage', 'true'); 
+    document.body.style.overflow = 'auto';// Persist state
   };
 
   const handleShowIntroPage = () => {
     setShowMainPage(false);
     localStorage.setItem("showMainPage", "false");
+    document.body.style.overflow = 'hidden';
   };
 
   
