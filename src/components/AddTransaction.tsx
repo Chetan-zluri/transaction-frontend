@@ -21,7 +21,7 @@ const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onClose }) => {
   useEffect(() => {
     const fetchCurrencies = async () => {
       try {
-        const response = await axios.get('https://freeexchange.onrender.com/2019-01-01');
+        const response = await axios.get('https://freeexchange.onrender.com/2020-01-01');
         setCurrencies(Object.keys(response.data));
       } catch (error) {
         console.error('Error fetching currencies:', error);
